@@ -1,9 +1,12 @@
+import os
 from datetime import datetime
 from flask import render_template, request
 from run import app
 from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter, update_counterbyid
 from wxcloudrun.model import Counters
 from wxcloudrun.response import make_succ_empty_response, make_succ_response, make_err_response
+
+from ss_image.wxcloudrun.predictionFolder import get_result
 
 
 @app.route('/')
@@ -64,3 +67,17 @@ def get_count():
     """
     counter = Counters.query.filter(Counters.id == 1).first()
     return make_succ_response(0) if counter is None else make_succ_response(counter.count)
+
+
+@app.route('/api/image', methods=['POST'])
+def get_image():
+    file = request.files.get('file')
+    file_path = os.path.join('pic', file.filename)
+    file.save(file_path)
+    data = get_result(file_path)
+    new_data = {
+        "result": data[0],
+        "num": data[1]
+    }
+    os.remove(file_path)
+    return make_succ_response(new_data)
